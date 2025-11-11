@@ -131,11 +131,7 @@ def non_combat_category(world: structs.World) -> structs.NCCategory:
             category = cat
 
     return category
-    
-def non_combat_category() -> structs.NCCategory:
-    # TODO properly decide category using NonCombat.csv
-    index = math.floor(random.random() * 5)
-    return _nc_categories[index]
+
 
 def skill_difficulty(player: structs.Player, world: structs.World) -> float:
     skill_noise = math.sqrt(-2 * math.log(random.random())) * math.cos(
