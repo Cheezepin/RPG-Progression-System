@@ -42,7 +42,7 @@ def non_combat(
     world: structs.World,
     stats: structs.Statistics,
 ):
-    category = utils.non_combat_category()
+    category = utils.non_combat_category(world)
     stats.OutcomeCategory = category.OutcomeCategory
     stats.SkillDifficulty = category.CategoryDC
 
