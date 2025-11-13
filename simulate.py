@@ -13,8 +13,10 @@ def combat(
     stats: structs.Statistics,
 ):
     chance = utils.combat_chance(player, world)
-    success = utils.skill_check(utils.power_ratio(player, world), world.BeatDC / 20)
-    stats.SuccessChanceCombat = chance
+    success_bool, success_prob = utils.skill_check(utils.power_ratio(player, world), world.BeatDC)
+    print(success_prob)
+    success = success_bool
+    stats.SuccessChanceCombat = success_prob
     stats.Success = success
 
     if success:
@@ -30,8 +32,9 @@ def combat(
             player.award_exp(exp)
             stats.XP_Earned = exp
 
-            gold = inputs.GOLD_PER_COMBAT_STEP
-            player.award_gold(gold)
+            # gold = inputs.GOLD_PER_COMBAT_STEP
+            gold = player.get_combat_gold() * (1 if success else -1)
+            player.award_gold(int(gold))
             stats.Gold_Earned = gold
 
             drop = loot.get_drop(world)
@@ -59,15 +62,16 @@ def non_combat(
     stats.SuccessChance_NonCombat = chance
     stats.Success = success
 
-    exp = math.floor(utils.skill_difficulty(player, world) * inputs.BASE_XP_NON_COMBAT)
+    rules = utils.get_category_rules(category)
+    exp = math.floor(utils.skill_difficulty(player, world) * inputs.BASE_XP_NON_COMBAT * (rules.XP_Success if success else rules.XP_Fail))
     player.award_exp(exp)
     stats.XP_Earned = exp
 
-    if success:
-        # maybe use nc_rules.csv
-        gold = inputs.GOLD_PER_NON_COMBAT_STEP
-        player.award_gold(gold)
-        stats.Gold_Earned = gold
+    # if success:
+        # print(rules.Gold_Success)
+    gold = player.get_non_combat_gold() * (rules.Gold_Success if success else rules.Gold_Fail) #inputs.GOLD_PER_NON_COMBAT_STEP
+    player.award_gold(int(gold))
+    stats.Gold_Earned = gold
 
 
 def simulate(turns: int):

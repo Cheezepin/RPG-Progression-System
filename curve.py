@@ -18,7 +18,9 @@ def load_simulation_data():
     cumulative_gold = []
     cumulative_xp = []
     power_ratios = []
-    success_chances = []
+    #success_chances = []
+    success_combat_chances = []
+    success_non_combat_chances = []
     
     with open(output_file, 'r') as f:
         reader = csv.DictReader(f)
@@ -33,10 +35,18 @@ def load_simulation_data():
                 power_ratios.append(float(row['PowerRatio']))
                 
                 # Get success chance (prioritize combat, fallback to non-combat)
-                success = float(row.get('SuccessChanceCombat', 0))
-                if success == 0:
-                    success = float(row.get('SuccessChance_NonCombat', 0))
-                success_chances.append(success)
+                #success = float(row.get('SuccessChanceCombat', 0))
+                #if success == 0:
+                #    success = float(row.get('SuccessChance_NonCombat', 0))
+                #success_chances.append(success)
+                success_combat = float(row.get('SuccessChanceCombat', 0))
+                if(success_combat != 0):
+                    success_combat_chances.append(success_combat)
+                    success_non_combat_chances.append(success_non_combat_chances[-1]  if len(success_non_combat_chances) > 0 else 0)
+                else:
+                    success_non_combat = float(row.get('SuccessChance_NonCombat', 0))
+                    success_non_combat_chances.append(success_non_combat)
+                    success_combat_chances.append(success_combat_chances[-1] if len(success_combat_chances) > 0 else 0)
             except (ValueError, KeyError) as e:
                 continue
     
@@ -48,7 +58,9 @@ def load_simulation_data():
         'cumulative_gold': cumulative_gold,
         'cumulative_xp': cumulative_xp,
         'power_ratios': power_ratios,
-        'success_chances': success_chances
+        #'success_chances': success_chances
+        'success_combat_chances': success_combat_chances,
+        'success_non_combat_chances': success_non_combat_chances
     }
 
 
@@ -290,9 +302,13 @@ def plot_simulation_results():
                      where=[pr < 0 for pr in data['power_ratios']],
                      alpha=0.2, color='red', label='Disadvantage')
     
-    line2 = ax4_twin.plot(data['steps'], [s * 100 for s in data['success_chances']], 
+    line2 = ax4_twin.plot(data['steps'], [s * 100 for s in data['success_combat_chances']], 
                           'd-', color='orange', linewidth=2, markersize=3, 
-                          label='Success Rate', alpha=0.7)
+                          label='Combat Success Rate', alpha=0.7)
+    
+    # line3 = ax4_twin.plot(data['steps'], [s * 100 for s in data['success_non_combat_chances']], 
+    #                       'd-', color='blue', linewidth=2, markersize=3, 
+    #                       label='Non-Combat Success Rate', alpha=0.7)
     
     ax4.set_xlabel('Step', fontsize=11, fontweight='bold')
     ax4.set_ylabel('Power Ratio (Player/Zone)', fontsize=10, fontweight='bold', color='purple')
@@ -303,7 +319,7 @@ def plot_simulation_results():
     ax4_twin.tick_params(axis='y', labelcolor='orange')
     
     # Combine legends
-    lines = line1 + line2
+    lines = line1 + line2 #+ line3
     labels = [l.get_label() for l in lines]
     ax4.legend(lines, labels, loc='upper left', fontsize=9)
     

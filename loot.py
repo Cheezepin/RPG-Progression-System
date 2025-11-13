@@ -33,11 +33,13 @@ QualityWeights = {
 }
 
 PieceWeights = {
-    "Weapon": 0.15,
-    "Chest": 0.25,
-    "Helm": 0.2,
-    "Legs": 0.2,
-    "Accessory": 0.2,
+    "Tire Replacement": 0.16,
+    "Oil Change": 0.16,
+    "Grill": 0.15,
+    "Spoiler": 0.15,
+    "Air Freshener": 0.2,
+    "Lift": 0.16,
+    "Lucky Charm": 0.02,
 }
 
 

@@ -6,7 +6,7 @@ import params
 import inputs
 
 _nc_categories = parser.read_csv("data/NC_Categories.csv", structs.NCCategory)
-# _nc_rules ?
+_nc_rules = parser.read_csv("data/NC_Rules.csv", structs.NCRules)
 _non_combat = parser.read_csv("data/NonCombat.csv", structs.NonCombat)
 
 
@@ -35,7 +35,7 @@ def skill_check(
         (success, chance)
     """
 
-    x = ratio - DC
+    x = ratio - (DC / 20.0)
     chance = logistic(x, L=1.0, k=steepness, x0=0.0)
     success = random.random() < chance
     return success, chance
@@ -46,6 +46,7 @@ def clamp(x: float, *, floor: float, ceil: float):
 
 
 def power_ratio(player: structs.Player, world: structs.World) -> float:
+    print("Score",player.equipment.get_score(),"Exponent",world.ZoneLevel / inputs.ZONE_SCALE)
     return player.equipment.get_score() / (
         inputs.BASE_RECOMMENDED_GEAR
         * inputs.GEAR_GROWTH_PER_ZONE ** (world.ZoneLevel / inputs.ZONE_SCALE)
@@ -88,14 +89,14 @@ def non_combat_chance(
         if cat.OutcomeCategory == category_key:
             category = cat
 
-    tn = category.CategoryDC + world.BeatDC
+    tn = (category.CategoryDC + world.BeatDC) / 20.0
     uni = clamp(
-        (21 - (tn - stat_score(player, category.StatKey))) / 20,
+        (21 - ((tn*20.0) - stat_score(player, category.StatKey))) / 20,
         floor=0,
         ceil=1,
     )
     success_chance = clamp(
-        1 / (1 + math.exp(-params.ATTEMPT_SLOPE * (tn - uni))),
+        1 / (1 + math.exp(-params.NC_SLOPE * (tn - uni))),
         floor=params.FLOOR_SUCCESS,
         ceil=params.CEIL_SUCCESS,
     )
@@ -139,3 +140,8 @@ def skill_difficulty(player: structs.Player, world: structs.World) -> float:
     )
     skill_difficulty = inputs.SKILL_DIFF_TIER_MULT + world.ZoneTier * skill_noise
     return skill_difficulty
+
+def get_category_rules(category: structs.NCCategory) -> structs.NCRules:
+    for cat in _nc_rules:
+        if cat.OutcomeCategory == category.OutcomeCategory:
+            return cat

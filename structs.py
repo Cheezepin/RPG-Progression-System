@@ -56,13 +56,13 @@ class Equipment:
     def equip_best(self, loot: list[Loot]):
         for l in loot:
             match l.Slot:
-                case "Weapon":
+                case "Tire Replacement":
                     self.weapon = max(self.weapon, l.BaseItemPower)
-                case "Helm":
+                case "Oil Change":
                     self.helm = max(self.helm, l.BaseItemPower)
-                case "Chest":
+                case "Grill":
                     self.chest = max(self.chest, l.BaseItemPower)
-                case "Boots":
+                case "Spoiler":
                     self.legs = max(self.legs, l.BaseItemPower)
                 case _:
                     self.accessory = max(self.accessory, l.BaseItemPower)
@@ -82,7 +82,7 @@ class Player:
     _loot: list[Loot] = []
     equipment = Equipment()
 
-    gold: int = 0
+    gold: int = 50
 
     _progression: list[Progression]
     _stats: list[Stats]
@@ -99,6 +99,18 @@ class Player:
                 if self._exp >= p.XP_to_Next:
                     self.level += 1
                     self._exp -= p.XP_to_Next
+    
+    def get_non_combat_gold(self) -> int:
+        for p in self._progression:
+            if p.Level == self.level:
+                return p.Gold_NonCombat
+        return 0
+            
+    def get_combat_gold(self) -> int:
+        for p in self._progression:
+            if p.Level == self.level:
+                return p.Gold_Combat
+        return 0
 
     def award_gold(self, amount: int):
         self.gold += amount
@@ -127,6 +139,16 @@ class NCCategory(parser.CSVRow):
     OutcomeCategory: str
     StatKey: str
     CategoryDC: int
+
+class NCRules(parser.CSVRow):
+    OutcomeCategory: str
+    XP_Success: float
+    XP_Fail: float
+    Rep_Success: float
+    Rep_Fail: float
+    Gold_Success: float
+    Gold_Fail: float
+    TimeCost_Fail: float
 
 
 class Statistics:
